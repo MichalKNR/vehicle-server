@@ -20,21 +20,12 @@ class VehicleServer: public QObject
     Q_OBJECT
 public:
     VehicleServer();
-public slots:
-    void terminate(bool fromSignal=false);
-    void reload();
-private slots:
-    void lockFile();
-    void setVariables();
+private:
     void openLogFile();
 private:
     QSettings       *settings;
-    QSettings       *sslSettings;
     AppNetManager   *appNetManager;
     AppMgr          *appMgr;
 
 };
-
-extern "C" void terminate_wrapper(int dummy);
-extern "C" void reload_wrapper(int dummy);
 #endif // LISTEKSERVER_H

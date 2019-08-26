@@ -23,7 +23,6 @@ void AppNetThread::closeApp() {
     socket->disconnectFromHost();
 }
 void AppNetThread::writeToSocket(QJsonDocument doc) {
-    qDebug() << "eeeeeeeeeeeeeeeeeeeeeee";
     QString text = doc.toJson();
     QByteArray block;
     QDataStream out(&block, QIODevice::ReadWrite);
@@ -41,7 +40,6 @@ void AppNetThread::writeToSocket(QJsonDocument doc) {
 }
 
 void AppNetThread::sendPong() {
-    qDebug() << "ala m akota";
     QJsonObject obj;
     obj.insert("type", QJsonValue::fromVariant("pong"));
     writeToSocket(QJsonDocument(obj));

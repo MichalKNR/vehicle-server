@@ -7,9 +7,10 @@ Singleton::Singleton() {
     configFile="vehicle-server.conf";
     projectFile="project.xml";
     lockFile="/tmp/vehicle-server.lock";
-    locale=QLocale("pl_PL");
-    skip_counter_number=1;
-    protocol_count=10;
+    locale = QLocale("pl_PL");
+    logging = 1;
+    logLevel = 9;
+    listenPort = 1234;
 }
 
 Singleton& Zm() {

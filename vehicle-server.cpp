@@ -2,14 +2,31 @@
 
 VehicleServer::VehicleServer()
 {
-    Zm().vehicleServerObj= (void*)this;
-    signal(SIGTERM,terminate_wrapper);
-    signal(SIGHUP,reload_wrapper);
+    QString configFileName = "vehicle-server.conf";
+    settings = new QSettings(configFileName, QSettings::IniFormat);
 
-    settings = new QSettings(Zm().configPath+Zm().configFile, QSettings::IniFormat);
-    qDebug()<<"path:"<<Zm().configPath<<" file:"<<Zm().configFile;
-    this->lockFile();
-    this->setVariables();
+    if (QFileInfo::exists(configFileName) && QFileInfo(configFileName).isFile()) {
+        qDebug() << "VehicleServer::VehicleServer read configFile " << configFileName;
+
+        QString key = "listenPort";
+        if (settings->contains(key)) {
+            Zm().listenPort = settings->value(key).toInt();
+        } else {
+            qDebug() << "VehicleServer::VehicleServer config file does not contains " << key;
+        }
+
+        key = "logFileName";
+        if (settings->contains(key)) {
+            Zm().logFileName = settings->value("logFileName").toString();
+        } else {
+            qDebug() << "VehicleServer::VehicleServer config file does not contains " << key;
+        }
+
+    } else {
+        qDebug() << "VehicleServer::VehicleServer configFile " << configFileName << " not found";
+    }
+
+
     this->openLogFile();
 
     QStringList list = settings->allKeys();
@@ -17,13 +34,9 @@ VehicleServer::VehicleServer()
     for(int i = 0;i < list.count();i++) {
         qDebug() << "VehicleServer::VehicleServer config key:" << list.at(i)<<" val:" << settings->value(list.at(i));
     }
+
     appNetManager = new AppNetManager(this);
-
     appMgr = new AppMgr(this);
-
-    qRegisterMetaType<QDomDocument>("QDomDocument");
-    qRegisterMetaType<QAbstractSocket::SocketState>("QAbstractSocket::SocketState");
-    qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
 
     //connections
 
@@ -42,30 +55,6 @@ VehicleServer::VehicleServer()
 
     qDebug()<<"VehicleServer::VehicleServer all main objects intialized";
 
-}
-
-void VehicleServer::lockFile() {
-    char str[10];
-    int lfp=open(Zm().lockFile.toLatin1(),O_RDWR|O_CREAT,0640);
-    if (lfp<0) {
-        qCritical()<<"Can't open lock file "<<Zm().lockFile<<": "<<strerror(errno); /* can not open */
-        exit(1);
-    }
-    if (lockf(lfp,F_TLOCK,0)<0) {
-        qCritical()<<"Can't create lock file "<<Zm().lockFile<<": "<<strerror(errno); /* can not lock */
-        exit(1);
-    }
-    QCoreApplication::applicationPid();
-    sprintf(str,"%d\n",QCoreApplication::applicationPid());
-    write(lfp,str,strlen(str));
-}
-
-void VehicleServer::setVariables() {
-    Zm().logFileName = settings->value("logFileName").toString();
-    Zm().appListenPort = settings->value("appListenPort").toInt();
-    Zm().devListenPort = settings->value("devListenPort").toInt();
-    Zm().logging = settings->value("logging").toInt();
-    Zm().logLevel = settings->value("logLevel").toInt();
 }
 
 void VehicleServer::openLogFile() {
@@ -88,27 +77,4 @@ void VehicleServer::openLogFile() {
     QString msg("Debug: %1 Log opened\n");
     msg=msg.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
     Zm().logFile.write(msg.toLatin1().data());
-}
-
-void terminate_wrapper(int dummy) {
-    VehicleServer *listekServer=(VehicleServer*)Zm().vehicleServerObj;
-    listekServer->terminate(true);
-}
-
-void reload_wrapper(int dummy) {
-    qDebug()<<"1 reload from SIGHUP";
-    VehicleServer *saratServer=(VehicleServer*)Zm().vehicleServerObj;
-    saratServer->reload();
-}
-
-void VehicleServer::terminate(bool fromSignal) {
-    qDebug()<<"1 SaratServer::terminate from signal:"<<fromSignal;
-    qApp->quit();
-}
-
-void VehicleServer::reload() {
-    settings->sync();
-    Zm().logging=settings->value("logging").toInt();
-    Zm().logLevel=settings->value("logLevel").toInt();
-    this->openLogFile();
 }

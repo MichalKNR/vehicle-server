@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
         QLocale::setDefault(QLocale::English);
 
-        VehicleServer listekServer;
+        VehicleServer vehicleServer;
         return a.exec();
     } catch(const std::bad_alloc &) {
         logMsg(QString("out of memory error"));

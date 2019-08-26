@@ -5,7 +5,8 @@ AppNetManager::AppNetManager(QObject *parent): QTcpServer(parent) {
     this->clientId=0;
 }
 void AppNetManager::init() {
-    this->listen(QHostAddress::Any,1234);
+    this->listen(QHostAddress::Any,Zm().listenPort);
+    qDebug() << "AppNetManager::init listen on " << Zm().listenPort;
 }
 
 void AppNetManager::incomingConnection(qintptr socketDescriptor) {
